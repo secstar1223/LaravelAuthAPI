@@ -1,0 +1,16 @@
+image: atlassian/default-image:3
+
+pipelines:
+  branches:
+    dev:
+      - step:
+          name: "Deploying staging"
+          deployment: staging
+          script:
+            - ssh booking@bookings247.co 'cd /home/booking/backend-dev && git pull && composer install --optimize-autoloader --no-dev && git reset --hard'
+    production:
+      - step:
+          name: "Deploying production"
+          deployment: production
+          script:
+            - ssh booking@bookings247.co 'cd /home/booking/backend && git pull && composer install --optimize-autoloader --no-dev && git reset --hard'
