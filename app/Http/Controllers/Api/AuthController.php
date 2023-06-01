@@ -145,7 +145,7 @@ class AuthController extends BaseController
     private function createTeam(User $user)
     {
         $team = new Teams([
-            'name'          => explode(' ', $user->name, 2)[0] . "'s Team",
+            'name'          => explode(' ', $user->name, 2)[0],
             'user_id'       => $user->id,
             'email'         => $user->email,
             'date_join'     => Carbon::now(),

@@ -8,7 +8,7 @@ class CreateRentalProductTable extends Migration
 {
     public function up()
     {
-        Schema::create('rental_product', function (Blueprint $table) {
+        Schema::create('rental_products', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name');
             $table->string('description');
@@ -25,7 +25,7 @@ class CreateRentalProductTable extends Migration
 
     public function down()
     {
-        Schema::dropIfExists('rental_product');
+        Schema::dropIfExists('rental_products');
     }
 }
 ;

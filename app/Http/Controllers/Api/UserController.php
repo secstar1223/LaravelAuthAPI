@@ -22,7 +22,7 @@ class UserController extends BaseController
         $success['user'] = $user;
         $success['current_team'] = Teams::whereId($user->current_team_id)->get()->first();
         $success['teams'] = User::find(1)->teams;
-        $responseMessage = "User retrieved successfully.";
+        $responseMessage = null;
         return $this->sendResponse($success, $responseMessage);
     }
 
@@ -45,20 +45,20 @@ class UserController extends BaseController
             return $this->sendError($responseMessage, 500);
         }
 
-        if(strcmp($request->current_password, $request->new_password) == 0){
+        if (strcmp($request->current_password, $request->new_password) == 0) {
             //Current password and new password are same
             $responseMessage = 'New Password cannot be same as your current password. Please choose a different password.';
             return $this->sendError($responseMessage, 500);
         }
-        if(strcmp($request->new_password, $request->new_password_confirm) !== 0){
+        if (strcmp($request->new_password, $request->confirm_password) !== 0) {
             //Current password and new password are same
-            $responseMessage = "Password doesn't match. Please enter password again.";
+            $responseMessage = "Conform password doesn't match.";
             return $this->sendError($responseMessage, 500);
         }
 
         $current_user->password = Hash::make($request->new_password);
         $current_user->save();
         $responseMessage = "Password updated Successfully.";
-        return $this->sendResponse([],$responseMessage);
+        return $this->sendResponse([], $responseMessage);
     }
 }

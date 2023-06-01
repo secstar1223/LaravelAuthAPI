@@ -31,6 +31,7 @@ class Teams extends Model
         'zip',
         'country',
         'timezone',
+        'website',
         'currency',
         'cc_disputes_email',
     ];
@@ -38,6 +39,11 @@ class Teams extends Model
     public function user(): BelongsToMany
     {
         return $this->BelongsToMany(User::class);
+    }
+
+    public function country(): BelongsToMany
+    {
+        return $this->BelongsToMany(Country::class);
     }
 
 

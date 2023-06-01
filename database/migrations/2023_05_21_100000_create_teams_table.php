@@ -11,6 +11,8 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('teams', function (Blueprint $table) {
+            $table->charset = 'utf8';
+            $table->collation = 'utf8_general_ci';
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
@@ -27,10 +29,10 @@ return new class extends Migration {
             $table->string('city')->nullable();
             $table->string('state')->nullable();
             $table->string('zip')->nullable();
-            $table->enum('country', ['United Kingdom', 'Ukraine'])->default('United Kingdom');
-            $table->enum('timezone', ['GMT+1', 'GMT+3'])->default('GMT+1');
+            $table->enum('country', \Config::get('constants.countries'))->default('Andorra');
+            $table->enum('timezone', \Config::get('constants.timezones'))->default('Europe/London');
             $table->string('website')->nullable();
-            $table->enum('currency', ['US Dollar', 'EURO'])->default('EURO');
+            $table->enum('currency', \Config::get('constants.currencies'))->default('EUR');
             $table->string('cc_disputes_email')->nullable();
             $table->timestamps();
         });

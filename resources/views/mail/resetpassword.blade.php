@@ -9,7 +9,7 @@
     <h1 style="color: #7367f0">Bookings247</h1>
     <div
         style="
-        /* max-width: 500px; */
+        max-width: 500px;
         padding: 20px;
         background-color: white;
         border-radius: 10px;

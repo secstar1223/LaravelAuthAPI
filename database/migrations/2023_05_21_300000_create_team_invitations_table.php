@@ -14,7 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('team_id')->constrained()->cascadeOnDelete();
             $table->string('email');
-            $table->string('role')->nullable();
+            $table->enum('role',\Config::get('constants.roles'))->default('editor');
             $table->timestamps();
 
             $table->unique(['team_id', 'email']);

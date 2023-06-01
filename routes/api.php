@@ -24,15 +24,28 @@ Route::group([
     'middleware' => 'auth.jwt',
 ], function ($router) {
     // User Routes
-    Route::get('/user', [UserController::class, 'index'])->name('user.index');
-    Route::post('/user', [UserController::class, 'update'])->name('user.update');
-    Route::post('/update-password', [UserController::class, 'updatePassword'])->name('user.updatePassword');
+    Route::get('/user', [UserController::class, 'index']);
+    Route::post('/user', [UserController::class, 'update']);
+    Route::post('/update-password', [UserController::class, 'updatePassword']);
 
     // Team Routes
-    Route::get('/team', [TeamsController::class, 'index'])->name('team.index');
+    Route::get('/team', [TeamsController::class, 'index']);
     Route::post('/team', [TeamsController::class, 'store'])->name('team.store');
-    Route::get('/team/{team}/edit', [TeamsController::class, 'edit'])->name('team.edit');
-    Route::post('/team/{team}', [TeamsController::class, 'update'])->name('team.update');
-    Route::delete('/team/{team}', [TeamsController::class, 'destroy'])->name('team.delete');
+    Route::get('/team/{team_id}/edit', [TeamsController::class, 'edit'])->name('team.edit');
+    Route::post('/team/{team_id}', [TeamsController::class, 'update'])->name('team.update');
+    Route::delete('/team/{team_id}', [TeamsController::class, 'destroy'])->name('team.delete');
+
+    Route::get('/team-invitation', [TeamsController::class, 'getTeamInvitations']);
+    Route::post('/team-invitation', [TeamsController::class, 'sendTeaminvitaion']);
+    Route::delete('/team-invitation/{invitation_id}', [TeamsController::class, 'cancelTeamInvitation']);
+
+    Route::post('/team-switch', [TeamsController::class, 'switchTeam']);
+
+    Route::get('/team-member', [TeamsController::class, 'getTeammembers']);
+    Route::post('/team-member-invited', [TeamsController::class, 'setTeammember']);
+    Route::delete('/team-member/{member_id}', [TeamsController::class, 'removeTeamMember']);
+
+    Route::get('/constants', [TeamsController::class, 'getConstants']);
+
 
 });

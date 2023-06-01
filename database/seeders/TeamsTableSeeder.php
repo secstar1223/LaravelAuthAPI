@@ -17,8 +17,8 @@ class TeamsTableSeeder extends Seeder
             'phone' => 12345678,
         ],
         [
-            'name' => 'User1',
-            'email' => 'user1@mail.com',
+            'name' => 'galileo',
+            'email' => 'galileo0106@gmail.com',
             'user_id' => 2,
             'phone' => 12345678,
         ],
