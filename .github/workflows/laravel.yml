@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: shivammathur/setup-php@15c43e89cdef867065b0213be354c2841860869e
       with:
-        php-version: '8.0'
+        php-version: '8.1'
     - uses: actions/checkout@v3
     - name: Copy .env
       run: php -r "file_exists('.env') || copy('.env.example', '.env');"
@@ -33,3 +33,31 @@ jobs:
         DB_CONNECTION: sqlite
         DB_DATABASE: database/database.sqlite
       run: vendor/bin/phpunit
+
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout
+
+      uses: actions/checkout@v2
+
+    - name: Setup Node.js
+
+      uses: actions/setup-node@v2-beta
+
+      with:
+
+        node-version: '16'
+
+        check-latest: true
+
+    - name: Install NPM dependencies
+
+      run: npm install
+
+    - name: Compile assets for production
+
+      run: npm run production
+    
