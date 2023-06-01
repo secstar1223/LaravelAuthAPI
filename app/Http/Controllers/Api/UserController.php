@@ -20,10 +20,7 @@ class UserController extends BaseController
     {
         $user = auth()->user();
         $success['user'] = $user;
-        $success['current_team'] = Teams::whereId($user->current_team_id)->get()->first();
-        $success['teams'] = User::find(1)->teams;
-        $responseMessage = null;
-        return $this->sendResponse($success, $responseMessage);
+        return $this->sendResponse($success, null);
     }
 
     public function update(Request $request)

@@ -19,6 +19,7 @@ class TeamInvitation extends Model
         'team_id',
         'email',
         'role',
+        'hash',
     ];
 
     public function team(): BelongsToMany

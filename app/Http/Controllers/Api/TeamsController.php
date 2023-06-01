@@ -9,7 +9,6 @@ use App\Models\Teams;
 use App\Models\TeamInvitation;
 use App\Models\TeamUser;
 use Carbon\Carbon;
-use Validator;
 
 class TeamsController extends BaseController
 {
@@ -46,7 +45,7 @@ class TeamsController extends BaseController
         $user = auth()->user();
         try {
             $team = new Teams([
-                'name' => explode(' ', $request->name, 2)[0] . "'s Team",
+                'name' => $request->name ?  $request->name : $user->name . "' team",
                 'user_id' => $user->id,
                 'email' => $request->email,
                 'phone' => $request->phone,
@@ -69,8 +68,7 @@ class TeamsController extends BaseController
             $responseMessage = "Team created successfully.";
             return $this->sendResponse([], $responseMessage);
         } catch (\Exception $e) {
-            $responseMessage = $e;
-            // $responseMessage = 'Team not created';
+            $responseMessage = $e->getMessage();
             return $this->sendError($responseMessage, 500);
         }
     }
@@ -163,7 +161,7 @@ class TeamsController extends BaseController
         $responseMessage = "Team deleted successfully.";
         return $this->sendResponse([], $responseMessage);
     }
-    public function sendTeaminvitaion(Request $request)
+    public function sendTeamInvitaion(Request $request)
     {
         $user = auth()->user();
         if ($user->email == $request->email) {
@@ -184,17 +182,19 @@ class TeamsController extends BaseController
             return $this->sendResponse([], $responseMessage);
         }
         try {
+            $hash = bin2hex(random_bytes(64));
             $teamInvitation = new TeamInvitation([
                 'team_id' => $user->current_team_id,
                 'email' => $request->email,
                 'role' => $request->role,
+                'hash' => $hash,
             ]);
             $teamInvitation->save();
 
             $frontUrl = env("FRONTEND_URL", "");
             $currnet_team = Teams::whereId($user->current_team_id)->get()->first()->name;
             if ($teamMember != null) {
-                $acceptUrl = $frontUrl . '/team-invitation/' . $user->current_team_id . '/' . $request->email;
+                $acceptUrl = $frontUrl . '/team-invitation/' . $hash;
                 \Mail::to($request->email)->send(new \App\Mail\TeamInvitation($currnet_team, $acceptUrl, null));
             } else {
                 $registerUrl = $frontUrl . '/register';
@@ -217,11 +217,20 @@ class TeamsController extends BaseController
         $responseMessage = "The selected Team Invitation deleted successfully.";
         return $this->sendResponse([], $responseMessage);
     }
-    public function getTeamInvitations(Request $request)
+    public function getTeamInvitations(Request $request) //pending Invitation
     {
         $user = auth()->user();
         $success['teaminvitation'] = TeamInvitation::where('team_id', $user->current_team_id)->get();
-        return $this->sendResponse($success, 'Team Invitations retrieved successfully.');
+        $responseMessage = "Team Invitations retrieved successfully.";
+        return $this->sendResponse($success, $responseMessage);
+    }
+
+    public function getTeamInvited(Request $request)
+    {
+        $user = auth()->user();
+        $success['teamMemberInvited'] = TeamInvitation::where('email', $user->email)->get();
+        $responseMessage = "Team Invited retrieved successfully.";
+        return $this->sendResponse($success, $responseMessage);
     }
 
     public function switchTeam(Request $request)
@@ -241,7 +250,7 @@ class TeamsController extends BaseController
         return $this->sendResponse($sucess, $responseMessage);
     }
 
-    public function getTeammembers(Request $request)
+    public function getTeamMembers(Request $request)
     {
         $user = auth()->user();
         $teammembers = TeamUser::where('team_id', $user->current_team_id)->get();
@@ -268,18 +277,18 @@ class TeamsController extends BaseController
         return $this->sendResponse([], $responseMessage);
     }
 
-    public function setTeamMember(Request $request)
+    public function confirmTeamInvitaion(Request $request, $hash)
     {
         try {
-            $teamMember = User::where('email', $request->email)->get()->first();
-            $teaminvitation = TeamInvitation::where(['team_id' => $request->team_id, 'email' => $request->email])->get()->first();
+            $teaminvitation = TeamInvitation::where('hash', $hash)->get()->first();
             if ($teaminvitation == null) {
                 $responseMessage = "Doesn't exist email invited.";
                 return $this->sendError($responseMessage, 500);
             }
+            $teamMember = User::where('email', $teaminvitation->email)->get()->first();
             TeamInvitation::destroy($teaminvitation->id);
             $teamuser = new TeamUser([
-                'team_id' => $request->team_id,
+                'team_id' => $teaminvitation->team_id,
                 'user_id' => $teamMember->id,
                 'role' => $teaminvitation->role,
             ]);

@@ -30,6 +30,7 @@ class Teams extends Model
         'state',
         'zip',
         'country',
+        'website',
         'timezone',
         'website',
         'currency',

@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\ResetPassword;
@@ -154,7 +152,7 @@ class AuthController extends BaseController
         $team->save();
         return $team;
     }
-    public function sendverification(Request $request)
+    public function sendVerification(Request $request)
     {
         try {
             $user = User::where('email', $request->email)->get()->first();
