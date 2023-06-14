@@ -19,7 +19,7 @@ return new class extends Migration
             $table->index('product_id');
 
             $table->unsignedBigInteger('duration_id');
-            $table->foreign('duration_id')->references('id')->on('duration')->onDelete('cascade');
+            $table->foreign('duration_id')->references('id')->on('durations')->onDelete('cascade');
             $table->index('duration_id');
 
             $table->unsignedBigInteger('equipment_id');

@@ -12,9 +12,8 @@ class CreateRentalProductTable extends Migration
             $table->bigIncrements('id');
             $table->string('name');
             $table->string('description');
-            $table->integer('send_wavier');
-            $table->integer('tax_template');
-            $table->binary('image')->nullable();
+            $table->integer('tax_template')->nullable();
+            $table->string('image')->nullable();
             $table->unsignedBigInteger('team_id');
             $table->foreign('team_id')->references('id')->on('teams')->onDelete('cascade');
             $table->index('team_id');

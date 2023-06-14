@@ -11,40 +11,19 @@ class UsersTableSeeder extends Seeder
 {
     static $users = [
         [
-            'name' => 'AnyTime',
+            'name' => 'secret',
             'email' => 'secstar1223@gmail.com',
             'password' => 12345678,
             'current_team_id' => 1,
             'profile_photo_path' => '',
         ],
         [
-            'name' => 'User1',
-            'email' => 'user1@mail.com',
-            'password' => 12345678,
+            'name' => 'galileo',
+            'email' => 'galileo0106@gmail.com',
+            'password' => 123123,
             'current_team_id' => 2,
             'profile_photo_path' => '',
-        ],
-        [
-            'name' => 'User2',
-            'email' => 'user2@mail.com',
-            'password' => 12345678,
-            'current_team_id' => 3,
-            'profile_photo_path' => '',
-        ],
-        [
-            'name' => 'User3',
-            'email' => 'user3@mail.com',
-            'password' => 12345678,
-            'current_team_id' => 4,
-            'profile_photo_path' => '',
-        ],
-        [
-            'name' => 'User4',
-            'email' => 'user4@mail.com',
-            'password' => 12345678,
-            'current_team_id' => 5,
-            'profile_photo_path' => '',
-        ],
+        ]
     ];
     /**
      * Run the database seeds.

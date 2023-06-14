@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreign('availability_id')->references('id')->on('availabilities')->onDelete('cascade');
             $table->index('availability_id');
             $table->unsignedBigInteger('duration_id');
-            $table->foreign('duration_id')->references('id')->on('duration')->onDelete('cascade');
+            $table->foreign('duration_id')->references('id')->on('durations')->onDelete('cascade');
             $table->index('duration_id');
             $table->timestamps();
         });

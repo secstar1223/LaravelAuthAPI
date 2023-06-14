@@ -14,9 +14,20 @@ return new class extends Migration
         Schema::create('availabilities', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('product_id');
-            $table->foreign('product_id')->references('id')->on('rental_products')->onUpdate('cascade');
+            $table->foreign('product_id')->references('id')->on('rental_products')->onDelete('cascade');
             $table->index('product_id');
-            $table->enum('times', ['repeats','specific']);
+            $table->enum('times', \Config::get('constants.times'));
+            $table->integer('start_time');
+            $table->integer('end_time');
+            $table->integer('starts_every');
+            $table->boolean('mon');
+            $table->boolean('tue');
+            $table->boolean('wed');
+            $table->boolean('thu');
+            $table->boolean('fri');
+            $table->boolean('sat');
+            $table->boolean('sun');
+            $table->text('starts_specific');
             $table->timestamps();
         });
     }

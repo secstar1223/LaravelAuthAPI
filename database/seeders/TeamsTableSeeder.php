@@ -11,35 +11,17 @@ class TeamsTableSeeder extends Seeder
 {
     static $teams = [
         [
-            'name' => 'AnyTime',
+            'name' => "secret's team",
             'email' => 'secstar1223@gmail.com',
             'user_id' => 1,
-            'phone' => 12345678,
+            'phone' => "+19282514577",
         ],
         [
-            'name' => 'galileo',
+            'name' => "galileo's team",
             'email' => 'galileo0106@gmail.com',
             'user_id' => 2,
-            'phone' => 12345678,
-        ],
-        [
-            'name' => 'User2',
-            'email' => 'user2@mail.com',
-            'user_id' => 3,
-            'phone' => 12345678,
-        ],
-        [
-            'name' => 'User3',
-            'email' => 'user3@mail.com',
-            'user_id' => 4,
-            'phone' => 12345678,
-        ],
-        [
-            'name' => 'User4',
-            'email' => 'user4@mail.com',
-            'user_id' => 5,
-            'phone' => 12345678,
-        ],
+            'phone' => "+19282514577",
+        ]
     ];
     /**
      * Run the database seeds.

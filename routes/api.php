@@ -3,6 +3,11 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\TeamsController;
+use App\Http\Controllers\Api\RentalProductsController;
+use App\Http\Controllers\Api\AssetController;
+use App\Http\Controllers\Api\EquipmentTypesController;
+use App\Http\Controllers\Api\DurationsController;
+use App\Http\Controllers\Api\AvailabilityController;
 
 Route::group([
     // 'middleware' => 'CORS',
@@ -44,19 +49,47 @@ Route::group([
     Route::get('/team-invited', [TeamsController::class, 'getTeamInvited']);
 
 
-    Route::post('/team-switch', [TeamsController::class, 'switchTeam']);
+    Route::put('/team-switch/{team_id}', [TeamsController::class, 'switchTeam']);
     Route::get('/team-member', [TeamsController::class, 'getTeamMembers']);
     Route::delete('/team-member/{member_id}', [TeamsController::class, 'removeTeamMember']);
 
     Route::get('/constants', [TeamsController::class, 'getConstants']);
 
-    // Assets Routes
-    Route::get('/asset', [AssetController::class, 'index']);
-    Route::get('/asset/create', [AssetController::class, 'create']);
-    Route::post('/asset', [AssetController::class, 'store']);
-    Route::get('/asset/{asset}/edit', [AssetController::class, 'edit']);
-    Route::put('/asset/{asset}', [AssetController::class, 'update']);
-    Route::delete('/asset/{asset}', [AssetController::class, 'destroy']);
+    // Rentals Routes
+    Route::get('/rentals', [RentalProductsController::class, 'index']);
+    Route::post('/rentals', [RentalProductsController::class, 'store']);
+    Route::get('/rentals/{rental_id}', [RentalProductsController::class, 'getById']);
+    Route::get('/rentals-download/{url}', [RentalProductsController::class, 'downloadfile']);
+    Route::post('/rentals/{product}', [RentalProductsController::class, 'update']);
+    Route::delete('/rentals/{product}', [RentalProductsController::class, 'destroy']);
 
+    // Assets Routes
+    Route::get('/assets', [AssetController::class, 'index']);
+    Route::post('/assets', [AssetController::class, 'store']);
+    Route::get('/assets/{asset_id}', [AssetController::class, 'getById']);
+    Route::post('/assets/{assets}', [AssetController::class, 'update']);
+    Route::delete('/assets/{assets}', [AssetController::class, 'destroy']);
+
+    Route::prefix('/rentals/{product}')->group(function () {
+
+        Route::get('/durations', [DurationsController::class, 'index']);
+        Route::post('/durations', [DurationsController::class, 'store']);
+        Route::get('/durations/{durations}', [DurationsController::class, 'getById']);
+        Route::post('/durations/{durations}', [DurationsController::class, 'update']);
+        Route::delete('/durations/{durtaions}', [DurationsController::class, 'destroy']);
+
+        Route::get('/equipment-types', [EquipmentTypesController::class, 'index']);
+        Route::post('/equipment-types', [EquipmentTypesController::class, 'store']);
+        Route::get('/equipment-types-download/{url}', [EquipmentTypesController::class, 'downloadfile']);
+        Route::get('/equipment-types/{equipmenttype}', [EquipmentTypesController::class, 'getById']);
+        Route::post('/equipment-types/{equipmenttype}', [EquipmentTypesController::class, 'update']);
+        Route::delete('/equipment-types/{equipmenttype}', [EquipmentTypesController::class, 'destroy']);
+
+        Route::get('/availability', [AvailabilityController::class, 'index']);
+        Route::post('/availability', [AvailabilityController::class, 'store']);
+        Route::get('/availability/{availID}', [AvailabilityController::class, 'getById']);
+        Route::post('/availability/{availID}', [AvailabilityController::class, 'update']);
+        Route::delete('/availability/{availID}', [AvailabilityController::class, 'destroy']);
+    });
 
 });

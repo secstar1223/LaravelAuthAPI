@@ -5,9 +5,6 @@ namespace App\Http\Controllers\Api;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\Api\BaseController;
-use App\Models\User;
-use App\Models\Teams;
-use Validator;
 
 class UserController extends BaseController
 {
@@ -38,7 +35,7 @@ class UserController extends BaseController
         $current_user = auth()->user();
         if (!(Hash::check($request->current_password, $current_user->password))) {
             // The passwords matches
-            $responseMessage = 'Your current password does not matches with the password you provided. Please try again.';
+            $responseMessage = 'Old password is not correct. Please try again.';
             return $this->sendError($responseMessage, 500);
         }
 

@@ -614,5 +614,10 @@ return [
     'roles' => [
         'Administrator',
         'Editor',
+    ],
+
+    'times' => [
+        'repeats',
+        'specific',
     ]
 ];

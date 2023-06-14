@@ -16,20 +16,20 @@ return new class extends Migration {
             $table->id();
             $table->string('name');
             $table->unsignedBigInteger('asset_id');
-            $table->foreign('asset_id')->references('id')->on('assets')->onUpdate('cascade');
+            $table->foreign('asset_id')->references('id')->on('assets')->onDelete('cascade');
             $table->index('asset_id');
 
             $table->unsignedBigInteger('product_id');
-            $table->foreign('product_id')->references('id')->on('rental_products')->onUpdate('cascade');
+            $table->foreign('product_id')->references('id')->on('rental_products')->onDelete('cascade');
             $table->index('product_id');
 
             $table->text('description')->nullable();
-            $table->binary('widget_image')->nullable();
+            $table->string('widget_image')->nullable();
             $table->boolean('widget_display')->default(false);
             $table->integer('min_amount')->nullable();
             $table->integer('max_amount')->nullable();
             $table->boolean('require_min')->default(false);
-            $table->integer('tax_template');
+            $table->integer('tax_template')->nullable();
             $table->timestamps();
         });
     }

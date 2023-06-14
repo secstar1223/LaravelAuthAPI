@@ -22,7 +22,11 @@ class TeamsController extends BaseController
         $user = auth()->user();
         $success['teams'] = Teams::where('user_id', $user->id)->get();
         $success['current_team'] = Teams::whereId($user->current_team_id)->get();
-        return $this->sendResponse($success, 'Teams retrieved successfully.');
+        $success['invitedTeam'] =  \DB::table('team_user')
+            ->leftJoin('teams', 'team_user.team_id', '=', 'teams.id')
+            ->where('team_user.user_id', '=', $user->current_team_id)
+            ->get();
+        return $this->sendResponse($success, null);
     }
     public function getConstants()
     {
@@ -31,8 +35,8 @@ class TeamsController extends BaseController
         $success['timezones'] = \Config::get('constants.timezones');
         $success['currencies'] = \Config::get('constants.currencies');
         $success['roles'] = \Config::get('constants.roles');
-        $responseMessage = 'The constants was retrieved successfully.';
-        return $this->sendResponse($success, $responseMessage);
+        $success['times'] = \Config::get('constants.times');
+        return $this->sendResponse($success, null);
     }
     /**
      * Store a newly created resource in storage.
@@ -45,7 +49,7 @@ class TeamsController extends BaseController
         $user = auth()->user();
         try {
             $team = new Teams([
-                'name' => $request->name ?  $request->name : $user->name . "' team",
+                'name' => $request->name ? $request->name : $user->name . "' team",
                 'user_id' => $user->id,
                 'email' => $request->email,
                 'phone' => $request->phone,
@@ -88,8 +92,7 @@ class TeamsController extends BaseController
             return $this->sendError($responseMessage, 404);
         }
         $sucess['team'] = $team;
-        $responseMessage = "Team retrieved successfully.";
-        return $this->sendResponse($sucess, $responseMessage);
+        return $this->sendResponse($sucess, null);
     }
     public function create($request)
     {
@@ -103,8 +106,7 @@ class TeamsController extends BaseController
             return $this->sendError($responseMessage, 404);
         }
         $sucess['team'] = $team;
-        $responseMessage = "Team retrieved successfully.";
-        return $this->sendResponse($sucess, $responseMessage);
+        return $this->sendResponse($sucess, null);
     }
 
     /**
@@ -123,7 +125,7 @@ class TeamsController extends BaseController
             return $this->sendError($responseMessage, 500);
         }
         $team = Teams::whereId($team_id)->update([
-            'name' => $request->name || explode(' ', $request->name, 2)[0] . "'s Team",
+            'name' => $request->name,
             'phone' => $request->phone,
             'bank' => $request->bank,
             'bank_route' => $request->bank_route,
@@ -200,51 +202,64 @@ class TeamsController extends BaseController
                 $registerUrl = $frontUrl . '/register';
                 \Mail::to($request->email)->send(new \App\Mail\TeamInvitation($currnet_team, null, $registerUrl));
             }
-            $responseMessage = $user->name . " has invited you to collaborate on the " . $currnet_team . "'s team";
+            $responseMessage = "Invitation sent to " . $request->email;
             return $this->sendResponse([], $responseMessage);
         } catch (\Exception $e) {
-            $responseMessage = 'Not sent email invited.';
+            $responseMessage = $e->getMessage();
             return $this->sendError($responseMessage, 500);
         }
     }
     public function cancelTeamInvitation(Request $request, $id)
     {
-        $deleteTeam = TeamInvitation::destroy($id);
-        if ($deleteTeam == 0) {
-            $responseMessage = 'The specified Team Invitation does not exist or is not associated with the current team.';
+        try {
+            $deleteTeam = TeamInvitation::destroy($id);
+            if ($deleteTeam == 0) {
+                $responseMessage = 'The specified Team Invitation does not exist or is not associated with the current team.';
+                return $this->sendError($responseMessage, 500);
+            }
+            $responseMessage = "The selected Team Invitation deleted successfully.";
+            return $this->sendResponse([], $responseMessage);
+        } catch (\Exception $e) {
+            $responseMessage = $e->getMessage();
             return $this->sendError($responseMessage, 500);
         }
-        $responseMessage = "The selected Team Invitation deleted successfully.";
-        return $this->sendResponse([], $responseMessage);
     }
     public function getTeamInvitations(Request $request) //pending Invitation
     {
-        $user = auth()->user();
-        $success['teaminvitation'] = TeamInvitation::where('team_id', $user->current_team_id)->get();
-        $responseMessage = "Team Invitations retrieved successfully.";
-        return $this->sendResponse($success, $responseMessage);
+        try {
+            $user = auth()->user();
+            $success['teamInvitations'] = TeamInvitation::where('team_id', $user->current_team_id)->get();
+            return $this->sendResponse($success, null);
+        } catch (\Exception $e) {
+            $responseMessage = $e->getMessage();
+            return $this->sendError($responseMessage, 500);
+        }
     }
 
     public function getTeamInvited(Request $request)
     {
-        $user = auth()->user();
-        $success['teamMemberInvited'] = TeamInvitation::where('email', $user->email)->get();
-        $responseMessage = "Team Invited retrieved successfully.";
-        return $this->sendResponse($success, $responseMessage);
+        try {
+            $user = auth()->user();
+            $success['invitations'] = TeamInvitation::where('email', $user->email)->get();
+            return $this->sendResponse($success, null);
+        } catch (\Exception $e) {
+            $responseMessage = $e->getMessage();
+            return $this->sendError($responseMessage, 500);
+        }
     }
 
-    public function switchTeam(Request $request)
+    public function switchTeam(Request $request, $team_id)
     {
         $user = auth()->user();
-        $existTeam = Teams::find($request->team_id);
+        $existTeam = Teams::find($team_id);
         if (!$existTeam) {
             $responseMessage = 'The specified Team does not exist or is not associated with the current team.';
             return $this->sendError($responseMessage, 500);
         }
         User::whereId($user->id)->update([
-            'current_team_id' => $request->team_id,
+            'current_team_id' => $team_id,
         ]);
-        $currentTeam = Teams::find($request->team_id);
+        $currentTeam = Teams::find($team_id);
         $sucess['team'] = $currentTeam;
         $responseMessage = "Current Team updated successfully.";
         return $this->sendResponse($sucess, $responseMessage);
@@ -253,16 +268,17 @@ class TeamsController extends BaseController
     public function getTeamMembers(Request $request)
     {
         $user = auth()->user();
-        $teammembers = TeamUser::where('team_id', $user->current_team_id)->get();
-        $success['teammembers'] = [];
-        foreach ($teammembers as $teammember) {
-            $success['teammembers'][] = [
-                'user' => TeamUser::find($teammember->id)->user()->get(),
-                'role' => $teammember->role,
+        $teamMembers = TeamUser::where('team_id', $user->current_team_id)->get();
+        $success['teamMembers'] = [];
+        foreach ($teamMembers as $teamMember) {
+            $success['teamMembers'][] = [
+                'user' => TeamUser::find($teamMember->id)->user()->get(),
+                'role' => $teamMember->role,
+                'id' => $teamMember->id,
             ];
         }
         $success['current_team'] = Teams::whereId($user->current_team_id)->get()->first();
-        $responseMessage = 'Teams retrieved successfully.';
+        $responseMessage = null;
         return $this->sendResponse($success, $responseMessage);
     }
     public function removeTeamMember(Request $request, $id)

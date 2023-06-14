@@ -11,12 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('duration', function (Blueprint $table) {
+        Schema::create('durations', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('product_id');
-            $table->foreign('product_id')->references('id')->on('rental_products')->onUpdate('cascade');
+            $table->foreign('product_id')->references('id')->on('rental_products')->onDelete('cascade');
             $table->index('product_id');
             $table->string('name');
+            $table->integer('duration');
             $table->integer('buffer')->nullable();
             $table->timestamps();
         });
@@ -27,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('duration');
+        Schema::dropIfExists('durations');
     }
 };

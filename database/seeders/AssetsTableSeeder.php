@@ -11,35 +11,23 @@ class AssetsTableSeeder extends Seeder
 {
     static $assets = [
         [
-            'name' => 'AnyTime',
+            'name' => 'secret',
             'team_id' => 1,
             'resource_tracking' => 1,
             'amount' => 4,
+        ],
+        [
+            'name' => 'Sport',
+            'team_id' => 1,
+            'resource_tracking' => 1,
+            'amount' => 5,
         ],
         [
             'name' => 'galileo',
-            'team_id' => 1,
+            'team_id' => 2,
             'resource_tracking' => 1,
             'amount' => 4,
-        ],
-        [
-            'name' => 'User2',
-            'team_id' => 1,
-            'resource_tracking' => 1,
-            'amount' => 2,
-        ],
-        [
-            'name' => 'User3',
-            'team_id' => 1,
-            'resource_tracking' => 0,
-            'amount' => 2,
-        ],
-        [
-            'name' => 'User4',
-            'team_id' => 5,
-            'resource_tracking' => 0,
-            'amount' => 1,
-        ],
+        ]
     ];
     /**
      * Run the database seeds.
