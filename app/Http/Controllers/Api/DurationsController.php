@@ -26,17 +26,20 @@ class DurationsController extends BaseController
         return $parts['days'] * 86400 + $parts['hours'] * 3600 + $parts['minutes'] * 60;
     }
 
-    protected function getDuration($duration) :array
+    protected function getDuration($duration): array
     {
-        $parts = $this->timestampToParts($duration->duration);
+        $durationParts = $this->timestampToParts($duration->duration);
+        $bufferParts = $this->timestampToParts($duration->buffer);
         return [
             'id' => $duration->id,
             'product_id' => $duration->product_id,
             'name' => $duration->name,
-            'days' => $parts['days'],
-            'hours' => $parts['hours'],
-            'minutes' => $parts['minutes'],
-            'buffer'=> $duration->buffer,
+            'duration_day' => $durationParts['days'],
+            'duration_hr' => $durationParts['hours'],
+            'duration_min' => $durationParts['minutes'],
+            'buffer_day' => $bufferParts['days'],
+            'buffer_hr' => $bufferParts['hours'],
+            'buffer_min' => $bufferParts['minutes'],
         ];
     }
 
@@ -49,8 +52,8 @@ class DurationsController extends BaseController
             foreach ($products as $product) {
                 if ($product->durations != []) {
                     // $success['durations'][] = $product->durations;
-                    foreach($product->durations as $duration){
-                        $success['durations'][]= $duration;
+                    foreach ($product->durations as $duration) {
+                        $success['durations'][] = $duration;
                     }
                 }
             }
@@ -61,8 +64,8 @@ class DurationsController extends BaseController
                 $responseMessage = "The specified rental product does not exist or is not associated with the current team.";
                 return $this->sendError($responseMessage, 500);
             }
-            foreach($currentproduct->durations as $duration){
-                $success['durations'][]= $this->getDuration($duration);
+            foreach ($currentproduct->durations as $duration) {
+                $success['durations'][] = $this->getDuration($duration);
             }
         }
 
@@ -80,9 +83,9 @@ class DurationsController extends BaseController
 
         $duration = new Duration();
         $duration->name = $request->name;
-        $duration->duration = $this->partsToTimestamp(['days' => $request->days, 'hours' => $request->hours, 'minutes' => $request->minutes]);
         $duration->product_id = $product_id;
-        $duration->buffer = $request->buffer;
+        $duration->duration = $this->partsToTimestamp(['days' => $request->duration_day, 'hours' => $request->duration_hr, 'minutes' => $request->duration_min]);
+        $duration->buffer = $this->partsToTimestamp(['days' => $request->buffer_day, 'hours' => $request->buffer_hr, 'minutes' => $request->buffer_min]);
         $duration->save();
 
         $responseMessage = "Duration created successfully.";
@@ -113,8 +116,9 @@ class DurationsController extends BaseController
             return $this->sendError($responseMessage, 500);
         }
         $duration->name = $request->name;
-        $duration->duration = $this->partsToTimestamp(['days' => $request->days, 'hours' => $request->hours, 'minutes' => $request->minutes]);
         $duration->product_id = $product_id;
+        $duration->duration = $this->partsToTimestamp(['days' => $request->days, 'duration_hr' => $request->duration_hr, 'minutes' => $request->duration_min]);
+        $duration->buffer = $this->partsToTimestamp(['days' => $request->buffer_days, 'duration_hr' => $request->buffer_hr, 'minutes' => $request->buffer_min]);
         $duration->buffer = $request->buffer;
         $duration->save();
 
