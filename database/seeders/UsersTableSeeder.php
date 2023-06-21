@@ -23,6 +23,20 @@ class UsersTableSeeder extends Seeder
             'password' => 123123,
             'current_team_id' => 2,
             'profile_photo_path' => '',
+        ],
+        [
+            'name' => 'user1',
+            'email' => 'user1@gmail.com',
+            'password' => 123123,
+            'current_team_id' => 3,
+            'profile_photo_path' => '',
+        ],
+        [
+            'name' => 'user2',
+            'email' => 'user2@gmail.com',
+            'password' => 123123,
+            'current_team_id' => 4,
+            'profile_photo_path' => '',
         ]
     ];
     /**

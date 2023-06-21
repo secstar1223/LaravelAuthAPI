@@ -14,7 +14,7 @@ class Price extends Model {
 
     public function equipmentTypes()
     {
-        return $this->belongsTo(Equipmenttype::class);
+        return $this->belongsTo(EquipmentType::class);
     }
 
     public function durations() {

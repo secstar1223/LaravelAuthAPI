@@ -19,7 +19,6 @@ class EquipmentTypesController extends BaseController
         if ($product_id == 0) {
             $products = RentalProducts::where('team_id', $user->current_team_id)->get();
             foreach ($products as $product) {
-                // $equipmentTypes[] = $product->equipmentTypes;
                 foreach ($product->equipmentTypes as $equipmentType) {
                     $success['equipmentTypes'][] = $equipmentType;
                 }

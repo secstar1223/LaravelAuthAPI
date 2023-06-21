@@ -40,6 +40,8 @@ class DurationsController extends BaseController
             'buffer_day' => $bufferParts['days'],
             'buffer_hr' => $bufferParts['hours'],
             'buffer_min' => $bufferParts['minutes'],
+            'updated_at' => $duration->updated_at,
+            'created_at' => $duration->created_at,
         ];
     }
 
@@ -53,7 +55,7 @@ class DurationsController extends BaseController
                 if ($product->durations != []) {
                     // $success['durations'][] = $product->durations;
                     foreach ($product->durations as $duration) {
-                        $success['durations'][] = $duration;
+                        $success['durations'][] =$this->getDuration($duration);
                     }
                 }
             }
@@ -117,9 +119,8 @@ class DurationsController extends BaseController
         }
         $duration->name = $request->name;
         $duration->product_id = $product_id;
-        $duration->duration = $this->partsToTimestamp(['days' => $request->days, 'duration_hr' => $request->duration_hr, 'minutes' => $request->duration_min]);
-        $duration->buffer = $this->partsToTimestamp(['days' => $request->buffer_days, 'duration_hr' => $request->buffer_hr, 'minutes' => $request->buffer_min]);
-        $duration->buffer = $request->buffer;
+        $duration->duration = $this->partsToTimestamp(['days' => $request->duration_day, 'hours' => $request->duration_hr, 'minutes' => $request->duration_min]);
+        $duration->buffer = $this->partsToTimestamp(['days' => $request->buffer_day, 'hours' => $request->buffer_hr, 'minutes' => $request->buffer_min]);
         $duration->save();
 
         $responseMessage = "Duration updated successfully.";

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Models\TeamUser;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\BaseController as BaseController;
 use App\Models\RentalProducts;
@@ -12,7 +13,14 @@ class RentalProductsController extends BaseController
     public function index()
     {
         $user = auth()->user();
-        $products = RentalProducts::where('team_id', $user->current_team_id)->get();
+        // $teams = TeamUser::where('');
+        $invitedTeams = TeamUser::where('user_id',$user->id)->get();
+        $allTeams[0] = $user->current_team_id;
+        foreach($invitedTeams as $invitedTeam){
+                $allTeams []= $invitedTeam->team_id;
+        }
+
+        $products = RentalProducts::whereIn('team_id', $allTeams)->get();
         foreach ($products as $product) {
             $product->equipmentTypes;
             $product->prices;
