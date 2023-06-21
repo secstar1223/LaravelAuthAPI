@@ -21,6 +21,18 @@ class TeamsTableSeeder extends Seeder
             'email' => 'galileo0106@gmail.com',
             'user_id' => 2,
             'phone' => "+19282514577",
+        ],
+        [
+            'name' => "user1's team",
+            'email' => 'user1@gmail.com',
+            'user_id' => 2,
+            'phone' => "+19282514577",
+        ],
+        [
+            'name' => "user2's team",
+            'email' => 'user2@gmail.com',
+            'user_id' => 2,
+            'phone' => "+19282514577",
         ]
     ];
     /**

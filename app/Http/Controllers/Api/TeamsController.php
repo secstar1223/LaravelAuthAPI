@@ -22,7 +22,7 @@ class TeamsController extends BaseController
         $user = auth()->user();
         $success['teams'] = Teams::where('user_id', $user->id)->get();
         $success['current_team'] = Teams::whereId($user->current_team_id)->get();
-        $success['invitedTeam'] =  \DB::table('team_user')
+        $success['invitedTeam'] = \DB::table('team_user')
             ->leftJoin('teams', 'team_user.team_id', '=', 'teams.id')
             ->where('team_user.user_id', '=', $user->current_team_id)
             ->get();
@@ -268,15 +268,25 @@ class TeamsController extends BaseController
     public function getTeamMembers(Request $request)
     {
         $user = auth()->user();
-        $teamMembers = TeamUser::where('team_id', $user->current_team_id)->get();
-        $success['teamMembers'] = [];
-        foreach ($teamMembers as $teamMember) {
-            $success['teamMembers'][] = [
-                'user' => TeamUser::find($teamMember->id)->user()->get(),
-                'role' => $teamMember->role,
-                'id' => $teamMember->id,
-            ];
+        $invitedTeams = TeamUser::where('user_id',$user->id)->get();
+        $allTeams[0] = $user->current_team_id;
+        foreach($invitedTeams as $invitedTeam){
+                $allTeams []= $invitedTeam->team_id;
         }
+
+        $teams = TeamUser::whereIn('team_id', $allTeams)->get();
+        $success['teamMembers'] = [];
+        $teamMembers = [];
+        foreach ($teams as $team) {
+            if($team->user_id!=$user->id){
+                $teamMembers [] = TeamUser::find($team->id)->user()->first();
+            }
+        }
+        $success['teamMembers'] = [
+            'user' => $teamMembers,
+            'role' => TeamUser::where('team_id',$user->current_team_id)->first()->role,
+        ];
+
         $success['current_team'] = Teams::whereId($user->current_team_id)->get()->first();
         $responseMessage = null;
         return $this->sendResponse($success, $responseMessage);

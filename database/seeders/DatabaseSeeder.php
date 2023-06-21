@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
             DurationsTableSeeder::class,
             AvailabilityTableSeeder::class,
             AvailabilityDurationsTableSeeder::class,
+            PriceTableSeeder::class,
+            TeamUserTableSeeder::class,
         ]);
     }
 }
