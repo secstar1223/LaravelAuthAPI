@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
+use App\Http\Controllers\Api\BaseController as BaseController;
+
 use App\Models\RentalProducts;
 use App\Models\Availability;
-use App\Http\Controllers\Api\BaseController as BaseController;
+use App\Models\TeamUser;
 use Carbon\Carbon;
 
 class AvailabilityController extends BaseController
@@ -15,45 +17,37 @@ class AvailabilityController extends BaseController
 
 
         $user = auth()->user();
+        $availabilities = [];
+
         if ($product_id == 0) {
-            $products = RentalProducts::where('team_id', $user->current_team_id)->get();
+            $invitedTeams = TeamUser::where('user_id', $user->id)->get();
+            $allTeams[0] = $user->current_team_id;
+            foreach ($invitedTeams as $invitedTeam) {
+                $allTeams[] = $invitedTeam->team_id;
+            }
+            $products = RentalProducts::whereIn('team_id', $allTeams)->get();
             foreach ($products as $product) {
-                $availabilities = [];
                 if ($product->availabilities !== null) {
                     foreach ($product->availabilities as $available) {
-                        $appliesTo = [];
-                        foreach ($available->durations as $duration) {
-                            $appliesTo[] = [$duration->name, $duration->id];
-                        }
-                         $success[] = [
-                            'availabilities' => $available,
-                            'applies_to' => $appliesTo,
-                        ];
+                        $available->durations;
+                        $availabilities[] = $available;
                     }
                 }
-
             }
-
         } else {
             $currentproduct = RentalProducts::find($product_id);
             if (!$currentproduct) {
                 $responseMessage = "The specified Availability does not exist or is not associated with the current team.";
                 return $this->sendError($responseMessage, 500);
             }
-            $availabilities = [];
             if ($currentproduct->availabilities !== null) {
                 foreach ($currentproduct->availabilities as $available) {
-                    $appliesTo = [];
-                    foreach ($available->durations as $duration) {
-                        $appliesTo[] = [$duration->name, $duration->id];
-                    }
-                    $success[] = [
-                        'availabilities' => $available,
-                        'applies_to' => $appliesTo,
-                    ];
+                    $available->durations;
+                    $availabilities[] = $available;
                 }
             }
         }
+        $success['availabilities'] = $availabilities;
         return $this->sendResponse($success, null);
     }
 
@@ -93,8 +87,8 @@ class AvailabilityController extends BaseController
         $availability->sun = $request->sun;
         $availability->times = $request->times;
         $availability->starts_every = ($request->times == 'specific' ? 0 : $request->starts_every);
-        $availability->start_time = ($request->times == 'specific' ? $starts_specifics[0] : $request->start_time);
-        $availability->end_time = ($request->times == 'specific' ? $starts_specifics[count($starts_specifics) - 1] : $request->end_time);
+        $availability->start_time = ($request->times == 'specific' ? 0: $request->start_time);
+        $availability->end_time = ($request->times == 'specific' ? 0 : $request->end_time);
         $availability->starts_specific = $starts_specifics;
         $availability->save();
 
@@ -113,16 +107,8 @@ class AvailabilityController extends BaseController
             $responseMessage = "The specified rental Equipment Type does not exist or is not associated with the current team.";
             return $this->sendError($responseMessage, 500);
         }
-
-
-        $appliesTo = [];
-        foreach ($currentAvailability->durations as $duration) {
-            $appliesTo[] = [$duration->name, $duration->id];
-        }
-        $success['availability'] = [
-            'availabilities' => $currentAvailability,
-            'applies_to' => $appliesTo,
-        ];
+        $currentAvailability->durations;
+        $success['availability'] = $currentAvailability;
         return $this->sendResponse($success, null);
     }
 
@@ -151,8 +137,8 @@ class AvailabilityController extends BaseController
         $availability->sun = $request->sun;
         $availability->times = $request->times;
         $availability->starts_every = ($request->times == 'specific' ? 0 : $request->starts_every);
-        $availability->start_time = ($request->times == 'specific' ? $starts_specifics[0] : $request->start_time);
-        $availability->end_time = ($request->times == 'specific' ? $starts_specifics[count($starts_specifics) - 1] : $request->end_time);
+        $availability->start_time = ($request->times == 'specific' ? 0 : $request->start_time);
+        $availability->end_time = ($request->times == 'specific' ? 0 : $request->end_time);
         $availability->starts_specific = $starts_specifics;
         $availability->save();
         $currentDetail = RentalProducts::with('availabilities.durations')->where('team_id', 1)->first();
@@ -167,9 +153,10 @@ class AvailabilityController extends BaseController
 
     public function destroy($product_id, $id)
     {
-        $deleteAvailability = Availability::destroy($id);
+        $ids = explode(",", $id);
+        $deleteAvailability = Availability::whereIn('id', $ids)->delete();
         if ($deleteAvailability == 0) {
-            $responseMessage = 'The specified Availability does not exist or is not associated with the current';
+            $responseMessage = 'The specified Availability does not exist or is not associated with the current Rental Product.';
             return $this->sendError($responseMessage, 500);
         }
         $responseMessage = "Availability Type deleted successfully.";

@@ -1,10 +1,13 @@
 <?php
 namespace App\Http\Controllers\Api;
-
 use Illuminate\Http\Request;
-use App\Models\RentalProducts;
-use App\Models\Duration;
 use App\Http\Controllers\Api\BaseController as BaseController;
+
+use App\Models\RentalProducts;
+use App\Models\EquipmentType;
+use App\Models\Duration;
+use App\Models\Price;
+use App\Models\TeamUser;
 use Carbon\Carbon;
 
 class DurationsController extends BaseController
@@ -50,12 +53,17 @@ class DurationsController extends BaseController
         $user = auth()->user();
         $success['durations'] = [];
         if ($product_id == 0) {
-            $products = RentalProducts::where('team_id', $user->current_team_id)->get();
+            $invitedTeams = TeamUser::where('user_id', $user->id)->get();
+            $allTeams[0] = $user->current_team_id;
+            foreach ($invitedTeams as $invitedTeam) {
+                $allTeams[] = $invitedTeam->team_id;
+            }
+            $products = RentalProducts::whereIn('team_id', $allTeams)->get();
             foreach ($products as $product) {
                 if ($product->durations != []) {
                     // $success['durations'][] = $product->durations;
                     foreach ($product->durations as $duration) {
-                        $success['durations'][] =$this->getDuration($duration);
+                        $success['durations'][] = $this->getDuration($duration);
                     }
                 }
             }
@@ -90,13 +98,23 @@ class DurationsController extends BaseController
         $duration->buffer = $this->partsToTimestamp(['days' => $request->buffer_day, 'hours' => $request->buffer_hr, 'minutes' => $request->buffer_min]);
         $duration->save();
 
+        $euquipments = EquipmentType::where('product_id', $product_id)->get();
+        foreach ($euquipments as $euquipment) {
+            $prices = new Price();
+            $prices->total = 0;
+            $prices->deposit = 0;
+            $prices->equipment_id = $euquipment->id;
+            $prices->duration_id = $duration->id;
+            $prices->product_id = $product_id;
+            $prices->save();
+        }
         $responseMessage = "Duration created successfully.";
         return $this->sendResponse([], $responseMessage);
     }
 
     public function getById($product_id, $id)
     {
-        $duration = Duration::whereId($id)->get()->first();
+        $duration = Duration::find($id);
         if (!$duration) {
             $responseMessage = "The specified Duration does not exist or is not associated with the current team.";
             return $this->sendError($responseMessage, 500);

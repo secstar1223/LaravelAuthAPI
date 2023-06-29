@@ -1,23 +1,31 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-
-use App\Models\EquipmentType;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Api\BaseController as BaseController;
-use App\Models\Asset;
+
+use Illuminate\Http\Request;
 use App\Models\RentalProducts;
+use App\Models\EquipmentType;
+use App\Models\TeamUser;
+use App\Models\Duration;
+use App\Models\Price;
 use Carbon\Carbon;
 
 class EquipmentTypesController extends BaseController
 {
 
+    
     public function index($product_id)
     {
         $user = auth()->user();
         $success['equipmentTypes'] = [];
         if ($product_id == 0) {
-            $products = RentalProducts::where('team_id', $user->current_team_id)->get();
+            $invitedTeams = TeamUser::where('user_id', $user->id)->get();
+            $allTeams[0] = $user->current_team_id;
+            foreach ($invitedTeams as $invitedTeam) {
+                $allTeams[] = $invitedTeam->team_id;
+            }
+            $products = RentalProducts::whereIn('team_id', $allTeams)->get();
             foreach ($products as $product) {
                 foreach ($product->equipmentTypes as $equipmentType) {
                     $success['equipmentTypes'][] = $equipmentType;
@@ -95,6 +103,17 @@ class EquipmentTypesController extends BaseController
         $equipmenttype->product_id = $product_id;
         $equipmenttype->tax_template = $request->tax_template;
         $equipmenttype->save();
+
+        $durations = Duration::where('product_id', $product_id)->get();
+        foreach ($durations as $duration) {
+            $prices = new Price();
+            $prices->total = 0;
+            $prices->deposit = 0;
+            $prices->equipment_id = $equipmenttype->id;
+            $prices->duration_id = $duration->id;
+            $prices->product_id = $product_id;
+            $prices->save();
+        }
 
         $responseMessage = "Equipment created successfully.";
         return $this->sendResponse([], $responseMessage);

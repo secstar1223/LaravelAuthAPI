@@ -1,12 +1,16 @@
 <?php
 namespace App\Http\Controllers\Api;
+use App\Http\Controllers\Api\BaseController as BaseController;
 
+
+use Illuminate\Http\Request;
+
+use App\Models\RentalProducts;
 use App\Models\EquipmentType;
 use App\Models\Price;
-use Illuminate\Http\Request;
-use App\Models\RentalProducts;
 use App\Models\Duration;
-use App\Http\Controllers\Api\BaseController as BaseController;
+use App\Models\TeamUser;
+
 use Carbon\Carbon;
 
 class PriceController extends BaseController
@@ -30,7 +34,12 @@ class PriceController extends BaseController
         $user = auth()->user();
         $success['prices'] = [];
         if ($product_id == 0) {
-            $products = RentalProducts::where('team_id', $user->current_team_id)->get();
+            $invitedTeams = TeamUser::where('user_id', $user->id)->get();
+            $allTeams[0] = $user->current_team_id;
+            foreach ($invitedTeams as $invitedTeam) {
+                $allTeams[] = $invitedTeam->team_id;
+            }
+            $products = RentalProducts::whereIn('team_id', $allTeams)->get();
             foreach ($products as $product) {
                 if ($product->prices != []) {
                     if ($equipment_id == 0) {
@@ -80,7 +89,7 @@ class PriceController extends BaseController
 
     public function getById($product_id, $equipment_id, $id)
     {
-        $price = Price::find($id)->first();
+        $price = Price::find($id);
         if (!$price) {
             $responseMessage = "The specified Price does not exist or is not associated with the current team.";
             return $this->sendError($responseMessage, 500);

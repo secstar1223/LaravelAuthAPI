@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\EquipmentTypesController;
 use App\Http\Controllers\Api\DurationsController;
 use App\Http\Controllers\Api\AvailabilityController;
 use App\Http\Controllers\Api\PriceController;
+use App\Http\Controllers\Api\QuestionController;
+use App\Http\Controllers\Api\RentalQuestionController;
 
 Route::group([
     // 'middleware' => 'CORS',
@@ -71,6 +73,13 @@ Route::group([
     Route::post('/asset/{asset_id}', [AssetController::class, 'update']);
     Route::delete('/asset/{asset_id}', [AssetController::class, 'destroy']);
 
+    // Questions Routes
+    Route::get('/question', [QuestionController::class, 'index']);
+    Route::post('/question', [QuestionController::class, 'store']);
+    Route::get('/question/{question_id}', [QuestionController::class, 'getById']);
+    Route::post('/question/{question_id}', [QuestionController::class, 'update']);
+    Route::delete('/question/{question_id}', [QuestionController::class, 'destroy']);
+
     Route::prefix('/rental/{product_id}')->group(function () {
 
         Route::get('/duration', [DurationsController::class, 'index']);
@@ -91,6 +100,12 @@ Route::group([
         Route::get('/availability/{availability_id}', [AvailabilityController::class, 'getById']);
         Route::post('/availability/{availability_id}', [AvailabilityController::class, 'update']);
         Route::delete('/availability/{availability_id}', [AvailabilityController::class, 'destroy']);
+
+        Route::get('/question', [RentalQuestionController::class, 'index']);
+        Route::post('/question', [RentalQuestionController::class, 'store']);
+        Route::get('/question/{question_id}', [RentalQuestionController::class, 'getById']);
+        Route::post('/question/{question_id}', [RentalQuestionController::class, 'update']);
+        Route::delete('/question/{question_id}', [RentalQuestionController::class, 'destroy']);
 
         Route::prefix('/equipment/{equipment_id}')->group(function () {
             Route::get('/price', [PriceController::class, 'index']);

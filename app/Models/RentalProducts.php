@@ -37,4 +37,9 @@ class RentalProducts extends Model {
     public function prices(){
         return $this->hasMany(Price::class,'product_id');
     }
+
+    public function rentalQuestions(){
+        return $this->hasMany(RentalQuestions::class,'product_id');
+    }
+
 };

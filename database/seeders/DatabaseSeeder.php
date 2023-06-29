@@ -13,16 +13,19 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            UsersTableSeeder::class,
-            TeamsTableSeeder::class,
-            AssetsTableSeeder::class,
-            RentalProductsTableSeeder::class,
-            EquipmentTypesTableSeeder::class,
-            DurationsTableSeeder::class,
-            AvailabilityTableSeeder::class,
-            AvailabilityDurationsTableSeeder::class,
-            PriceTableSeeder::class,
-            TeamUserTableSeeder::class,
+            // UsersTableSeeder::class,
+            // TeamsTableSeeder::class,
+            // AssetsTableSeeder::class,
+            // RentalProductsTableSeeder::class,
+            // EquipmentTypesTableSeeder::class,
+            // DurationsTableSeeder::class,
+            // AvailabilityTableSeeder::class,
+            // AvailabilityDurationsTableSeeder::class,
+            // PriceTableSeeder::class,
+            // TeamUserTableSeeder::class,
+            // QuestionTableSeeder::class,
+            // MultipleChoicesTableSeeder::class,
+            RentalQuestionsTableSeeder::class,
         ]);
     }
 }

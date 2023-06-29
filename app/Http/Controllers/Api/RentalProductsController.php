@@ -1,69 +1,68 @@
 <?php
 
 namespace App\Http\Controllers\Api;
-
-use App\Models\TeamUser;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Api\BaseController as BaseController;
+
+use Illuminate\Http\Request;
 use App\Models\RentalProducts;
+use App\Models\EquipmentType;
+use App\Models\TeamUser;
+use App\Models\Duration;
+use App\Models\Price;
 use Carbon\Carbon;
 
-class RentalProductsController extends BaseController
+class EquipmentTypesController extends BaseController
 {
-    public function index()
+
+    public function index($product_id)
     {
         $user = auth()->user();
-        // $teams = TeamUser::where('');
-        $invitedTeams = TeamUser::where('user_id',$user->id)->get();
-        $allTeams[0] = $user->current_team_id;
-        foreach($invitedTeams as $invitedTeam){
-                $allTeams []= $invitedTeam->team_id;
+        $success['equipmentTypes'] = [];
+        if ($product_id == 0) {
+            $invitedTeams = TeamUser::where('user_id', $user->id)->get();
+            $allTeams[0] = $user->current_team_id;
+            foreach ($invitedTeams as $invitedTeam) {
+                $allTeams[] = $invitedTeam->team_id;
+            }
+            $products = RentalProducts::whereIn('team_id', $allTeams)->get();
+            foreach ($products as $product) {
+                foreach ($product->equipmentTypes as $equipmentType) {
+                    $success['equipmentTypes'][] = $equipmentType;
+                }
+            }
+        } else {
+            $currentproduct = RentalProducts::find($product_id);
+            if (!$currentproduct) {
+                $responseMessage = "The specified rental product does not exist or is not associated with the current team.";
+                return $this->sendError($responseMessage, 500);
+            }
+            // $equipmentTypes[] = $currentproduct->equipmentTypes;
+            foreach ($currentproduct->equipmentTypes as $equipmentType) {
+                $success['equipmentTypes'][] = $equipmentType;
+            }
         }
 
-        $products = RentalProducts::whereIn('team_id', $allTeams)->get();
-        foreach ($products as $product) {
-            $product->equipmentTypes;
-            $product->prices;
-            $product->durations;
-            $product->availabilities;
-        }
-        $success['products'] = $products;
         return $this->sendResponse($success, null);
     }
-    public function getById($product_id)
+
+    public function store(Request $request, $product_id)
     {
-        $product = RentalProducts::find($product_id);
-        if (!$product) {
+        $currentproduct = RentalProducts::whereId($product_id)->get();
+
+        if (!$currentproduct) {
             $responseMessage = "The specified rental product does not exist or is not associated with the current team.";
             return $this->sendError($responseMessage, 500);
         }
-        $product->equipmentTypes;
-        $product->prices;
-        $product->durations;
-        $product->availabilities;
-        $success['product'] = $product;
-        return $this->sendResponse($success, null);
-    }
 
-    public function downloadfile($id)
-    {
-        $file = public_path(RentalProducts::whereId($id)->get()->first()->image);
-        return response()->download($file);
-    }
+        $equipmenttype = new EquipmentType();
+        $equipmenttype->name = $request->name;
+        $equipmenttype->description = $request->description;
+        $equipmenttype->min_amount = $request->min_amount;
+        $equipmenttype->max_amount = $request->max_amount;
+        $equipmenttype->require_min = $request->require_min;
 
-    public function editnewrentals(Request $request)
-    {
-        $user = auth()->user();
-    }
-
-    public function store(Request $request)
-    {
-        $user = auth()->user();
-        $rentalProduct = new RentalProducts();
-        $rentalProduct->name = $request->name;
-        $rentalProduct->description = $request->description;
-        if ($request->hasFile('image')) {
-            $file = $request->file('image');
+        if ($request->hasFile('widget_image')) {
+            $file = $request->file('widget_image');
             $filename = $file->getClientOriginalName();
             $extension = $file->getClientOriginalExtension();
             $tempPath = $file->getRealPath();
@@ -78,55 +77,96 @@ class RentalProductsController extends BaseController
 
                 // Check file size
                 if ($fileSize <= $maxFileSize) {
-                    $path = 'uploads/rentals/';
+                    $path = 'uploads/equipmentTypes/';
                     if (!\File::isDirectory(public_path($path))) {
                         \File::makeDirectory($path, 0777, true, true);
                     }
 
-                    $file_name = 'rental_' . date('dmYHis') . '.' . $extension;
+                    $file_name = 'equipement_' . date('dmYHis') . '.' . $extension;
                     $file_name = preg_replace('/\s+/', '', $file_name);
 
                     //remove image before upload
                     $file->move(public_path($path), $file_name);
                     $file_path = $path . $file_name;
-                    $rentalProduct->image = $file_path;
+                    $equipmenttype->widget_image = $file_path;
                 } else {
                     $responseMessage = 'File too large. File must be less than 2MB.';
                     return $this->sendError($responseMessage, 500);
                 }
             }
         } else {
-            $rentalProduct->image = null;
+            $equipmenttype->widget_image = null;
         }
-        $rentalProduct->tax_template = $request->tax_template;
-        $rentalProduct->team_id = $user->current_team_id;
-        $rentalProduct->save();
-        $responseMessage = "Rental Product created successfully.";
+        $equipmenttype->widget_display = $request->widget_display;
+        $equipmenttype->asset_id = $request->asset_id;
+        $equipmenttype->product_id = $product_id;
+        $equipmenttype->tax_template = $request->tax_template;
+        $equipmenttype->save();
+
+        $durations = Duration::where('product_id', $product_id)->get();
+        foreach ($durations as $duration) {
+            $prices = new Price();
+            $prices->total = 0;
+            $prices->deposit = 0;
+            $prices->equipment_id = $equipmenttype->id;
+            $prices->duration_id = $duration->id;
+            $prices->product_id = $product_id;
+            $prices->save();
+        }
+
+        $responseMessage = "Equipment created successfully.";
         return $this->sendResponse([], $responseMessage);
     }
 
-    public function update(Request $request, $id)
+    public function getById($product_id, $id)
+    {
+        $equipmentType = EquipmentType::whereId($id)->get()->first();
+        if (!$equipmentType) {
+            $responseMessage = "The specified rental Equipment Type does not exist or is not associated with the current team.";
+            return $this->sendError($responseMessage, 500);
+        }
+        $success['equipmentType'] = $equipmentType;
+        return $this->sendResponse($success, null);
+    }
+
+    public function downloadfile($product_id, $id)
+    {
+        $file = public_path(EquipmentType::whereId($id)->get()->first()->widget_image);
+        return response()->download($file);
+    }
+
+    public function update(Request $request, $product_id, $id)
     {
         $user = auth()->user();
-        $currentProduct = RentalProducts::find($id);
-        if (!$currentProduct) {
-            $responseMessage = 'The specified rental product does not exist or is not associated with the current team.';
+
+        $currentproduct = RentalProducts::whereId($id)->get();
+
+        if (!$currentproduct) {
+            $responseMessage = "The specified rental product does not exist or is not associated with the current team.";
             return $this->sendError($responseMessage, 500);
         }
 
-        $currentProduct->name = $request->name;
-        $currentProduct->description = $request->description;
-        $currentProduct->team_id = $user->current_team_id;
+        $equipmentTypes = EquipmentType::find($id);
+        if (!$equipmentTypes) {
+            $responseMessage = "The specified Equipment does not exist or is not associated with the current team.";
+            return $this->sendError($responseMessage, 500);
+        }
 
-        if ($request->image_changed == 1) {
-            if ($currentProduct->image != null) {
-                $imagepath = public_path($currentProduct->image);
+        $equipmentTypes->name = $request->name;
+        $equipmentTypes->description = $request->description;
+        $equipmentTypes->min_amount = $request->min_amount;
+        $equipmentTypes->max_amount = $request->max_amount;
+        $equipmentTypes->require_min = $request->require_min;
+
+        if ($request->widget_image_changed == 1) {
+            if ($equipmentTypes->widget_image != null) {
+                $imagepath = public_path($equipmentTypes->widget_image);
                 if (\File::exists($imagepath)) {
                     unlink($imagepath);
                 }
             }
-            if ($request->hasFile('image')) {
-                $file = $request->file('image');
+            if ($request->hasFile('widget_image')) {
+                $file = $request->file('widget_image');
                 $filename = $file->getClientOriginalName();
                 $extension = $file->getClientOriginalExtension();
                 $tempPath = $file->getRealPath();
@@ -141,7 +181,7 @@ class RentalProductsController extends BaseController
 
                     // Check file size
                     if ($fileSize <= $maxFileSize) {
-                        $path = 'uploads/rentals/';
+                        $path = 'uploads/equipmentTypes/';
                         if (!\File::isDirectory(public_path($path))) {
                             \File::makeDirectory($path, 0777, true, true);
                         }
@@ -152,41 +192,46 @@ class RentalProductsController extends BaseController
                         //remove image before upload
                         $file->move(public_path($path), $file_name);
                         $file_path = $path . $file_name;
-                        $currentProduct->image = $file_path;
+                        $equipmentTypes->widget_image = $file_path;
                     } else {
                         $responseMessage = 'File too large. File must be less than 2MB.';
                         return $this->sendError($responseMessage, 500);
                     }
                 }
             } else {
-                $currentProduct->image = null;
+                $equipmentTypes->widget_image = null;
             }
         }
-        $currentProduct->save();
-        $sucess['product'] = $currentProduct;
-        $responseMessage = "Current Rental Product updated successfully.";
+        $equipmentTypes->widget_display = $request->widget_display;
+        $equipmentTypes->asset_id = $request->asset_id;
+        $equipmentTypes->tax_template = $request->tax_template;
+        $equipmentTypes->product_id = $product_id;
+        $equipmentTypes->save();
+
+        $sucess['equipmentTypes'] = $equipmentTypes;
+        $responseMessage = "Current equipmentTypes updated successfully.";
         return $this->sendResponse($sucess, $responseMessage);
     }
 
-    public function destroy($id)
+    public function destroy($product_id, $id)
     {
         $ids = explode(",", $id);
         foreach ($ids as $imageid) {
-            $imageProduct = RentalProducts::find($imageid);
-            if ($imageProduct->image != null) {
-                $imagepath = public_path($imageProduct->image);
+            $imageEquipment = EquipmentType::find($imageid);
+            if ($imageEquipment->widget_image != null) {
+                $imagepath = public_path($imageEquipment->widget_image);
                 if (\File::exists($imagepath)) {
                     unlink($imagepath);
                 }
             }
         }
-        $deleteProduct = RentalProducts::whereIn('id', $ids)->delete();
+        $deleteEquipmentType = EquipmentType::whereIn('id', $ids)->delete();
 
-        if ($deleteProduct == 0) {
-            $responseMessage = 'The specified Rental Product does not exist or is not associated with the current team.';
+        if ($deleteEquipmentType == 0) {
+            $responseMessage = 'The specified Equipement Type does not exist or is not associated with the current team.';
             return $this->sendError($responseMessage, 500);
         }
-        $responseMessage = "Rental Product deleted successfully.";
+        $responseMessage = "Rental Equipement Type deleted successfully.";
         return $this->sendResponse([], $responseMessage);
     }
 }

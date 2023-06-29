@@ -619,5 +619,10 @@ return [
     'times' => [
         'repeats',
         'specific',
+    ],
+    'question_type' => [
+        'type',
+        'yes_no',
+        'multiple_choice',
     ]
 ];
